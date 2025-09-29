@@ -10,9 +10,6 @@ set +o allexport
 
 
 
-# Xuất biến mật khẩu môi trường develop
-export PGPASSWORD=$DEVELOP_PASSWORD
-
 echo "--------------------------------------------------------------------"
 echo
 echo "Connecting to database at $DEVELOP_HOST:$DEVELOP_PORT with user $DEVELOP_USER"
@@ -21,7 +18,13 @@ echo "--------------------------------------------------------------------"
 
 echo
 echo "Fetching list of databases from the develop environment..."
-DB_LIST=$(psql -h $DEVELOP_HOST -p $DEVELOP_PORT -U $DEVELOP_USER -d postgres -t -c "SELECT datname FROM pg_database WHERE datistemplate = false;")
+
+# Fetch list of databases using psql inside a temporary Docker container
+DB_LIST=$(docker run --rm \
+  -e PGPASSWORD=$DEVELOP_PASSWORD \
+  --network host \
+  postgis/postgis \
+  psql -h $DEVELOP_HOST -p $DEVELOP_PORT -U $DEVELOP_USER -d postgres -t -c "SELECT datname FROM pg_database WHERE datistemplate = false;")
 if [ $? -ne 0 ]; then
   echo "Error: Unable to fetch database list from develop environment."
   exit 1
@@ -68,14 +71,19 @@ echo "--------------------------------------------------------------------"
 DATE_TAG=$(date +%d%m%y)
 BACKUP_FILE="${SELECTED_DB}_${DATE_TAG}.sql"
 
-# Dump database từ môi trường develop
+
+# Dump database from develop using pg_dump inside a temporary Docker container
 echo
 echo "--------------------------------------------------------------------"
 echo
 echo "Dumping database $SELECTED_DB from develop environment..."
 echo
-echo
-pg_dump --verbose -h $DEVELOP_HOST -p $DEVELOP_PORT -U $DEVELOP_USER -d $SELECTED_DB -F c -f $BACKUP_FILE
+docker run --rm \
+  -e PGPASSWORD=$DEVELOP_PASSWORD \
+  -v "$PWD":/backup \
+  --network host \
+  postgis/postgis \
+  pg_dump --verbose -h $DEVELOP_HOST -p $DEVELOP_PORT -U $DEVELOP_USER -d $SELECTED_DB -F c -f /backup/$BACKUP_FILE
 if [ $? -ne 0 ]; then
   echo "Error: Failed to dump database $SELECTED_DB from develop environment."
   exit 1
@@ -87,13 +95,14 @@ echo "Database dumped successfully to $BACKUP_FILE."
 
 echo "--------------------------------------------------------------------"
 
+
+# Drop and create database using psql inside the selected Docker container
 docker exec -e PGPASSWORD=$LOCAL_PASSWORD $SELECTED_CONTAINER psql -U $LOCAL_USER -d postgres -c "DROP DATABASE IF EXISTS $SELECTED_DB;"
 if [ $? -ne 0 ]; then
   echo "Error: Failed to drop the old database $SELECTED_DB in Docker container."
   exit 1
 fi
 
-# Tạo database mới trong container Docker
 echo "Creating new database $SELECTED_DB in Docker container..."
 docker exec -e PGPASSWORD=$LOCAL_PASSWORD $SELECTED_CONTAINER psql -U $LOCAL_USER -d postgres -c "CREATE DATABASE $SELECTED_DB;"
 if [ $? -ne 0 ]; then
@@ -109,7 +118,8 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Khôi phục database trong container Docker
+
+# Restore database using pg_restore inside the selected Docker container
 echo "Restoring database $SELECTED_DB in Docker container..."
 docker exec -e PGPASSWORD=$LOCAL_PASSWORD $SELECTED_CONTAINER pg_restore -U $LOCAL_USER -d $SELECTED_DB -F c /tmp/$BACKUP_FILE
 if [ $? -ne 0 ]; then
