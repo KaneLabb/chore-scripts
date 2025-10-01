@@ -33,6 +33,7 @@ dtoPath="$DTO_DIR/${name}Dto.ts"
 if [[ ! -f "$entityPath" ]]; then
   cat > "$entityPath" <<EOF
 import { Entity, Column } from 'typeorm';
+
 import { BaseEntity } from '@DBCommon/BaseEntity';
 
 @Entity()
@@ -53,6 +54,7 @@ import { Inject, Service } from 'typedi';
 import { DataSource } from 'typeorm';
 
 import { ${name} } from '@Entities/${name}';
+
 import { BaseOrmRepository } from '@Repositories/BaseOrmRepository';
 
 @Service()
@@ -84,6 +86,7 @@ fi
 if [[ ! -f "$dtoPath" ]]; then
   cat > "$dtoPath" <<EOF
 import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+
 import { BaseQueryParams } from '@Rests/types/common/BaseQueryParams';
 
 export class ${name}QueryParams extends BaseQueryParams {}
@@ -111,14 +114,17 @@ fi
 if [[ ! -f "$srvPath" ]]; then
   cat > "$srvPath" <<EOF
 import { Service } from 'typedi';
-import { FindOneOptions, ILike, FindOptionsWhere, FindManyOptions } from 'typeorm';
+import { FindOneOptions } from 'typeorm';
+
+import { HttpPaginatedResponse } from '@Libs/types/HttpPaginatedResponse';
 
 import { ${name} } from '@Entities/${name}';
+
 import { ${name}Repository } from '@Repositories/${name}Repository';
 
 import { Create${name}Input, Update${name}Input } from '@Services/types/${name}Input';
+
 import { ${name}QueryParams } from '@Rests/types/${name}Dto';
-import { HttpPaginatedResponse } from '@Libs/types/HttpPaginatedResponse';
 
 @Service()
 export class ${name}Service {
@@ -127,22 +133,20 @@ export class ${name}Service {
   ) {}
 
   async findAllPaginated(params: ${name}QueryParams): Promise<HttpPaginatedResponse<${name}>> {
-    const { page = 1, size = 10, searchText, sortBy = 'id', sortDirection = 'ASC' } = params;
+    const { page, size, searchText, sortBy, sortDirection } = params;
     const skip = (page - 1) * size;
 
-    let where: FindOptionsWhere<${name}> | FindOptionsWhere<${name}>[] = {};
+    const qb = this.${varRepo}.createQueryBuilder('entity');
+
     if (searchText) {
-      where = { name: ILike(\`%\${searchText}%\`) };
+      qb.andWhere('entity.name ILIKE :search', { search: \`%\${searchText}%\` });
     }
 
-    const options: FindManyOptions<${name}> = {
-      where,
-      skip,
-      take: size,
-      order: { [sortBy]: sortDirection as 'ASC' | 'DESC' },
-    };
+    qb.orderBy(\`entity.\${sortBy}\`, sortDirection as 'ASC' | 'DESC')
+      .skip(skip)
+      .take(size);
 
-    const [items, total] = await this.${varRepo}.findAndCount(options);
+    const [items, total] = await qb.getManyAndCount();
 
     return new HttpPaginatedResponse<${name}>()
       .withItems(items)
@@ -191,10 +195,13 @@ import { JsonController, Get, Post, Put, Delete, Param, Body, QueryParams, OnUnd
 import { OpenAPI } from 'routing-controllers-openapi';
 import { Service } from 'typedi';
 
-import { ${name} } from '@Entities/${name}';
-import { ${name}Service } from '@Services/${name}Service';
-import { ${name}QueryParams, Create${name}Dto, Update${name}Dto } from '@Rests/types/${name}Dto';
 import { HttpPaginatedResponse } from '@Libs/types/HttpPaginatedResponse';
+
+import { ${name} } from '@Entities/${name}';
+
+import { ${name}Service } from '@Services/${name}Service';
+
+import { ${name}QueryParams, Create${name}Dto, Update${name}Dto } from '@Rests/types/${name}Dto';
 
 @Service()
 @JsonController('/${routeBase}')
