@@ -18,8 +18,9 @@ first="${name:0:1}"; rest="${name:1}"
 lcFirst="$(tr '[:upper:]' '[:lower:]' <<<"$first")"
 varRepo="${lcFirst}${rest}Repo"
 
-# kebab-case + 's' cho base route
-kebab="$(sed -e 's/\([^A-Z]\)\([A-Z]\)/\1-\L\2/g' -e 's/^\([A-Z]\)/\L\1/' <<<"$name" | tr '[:upper:]' '[:lower:]')"
+# kebab-case + 's' cho base route (portable: works on macOS/BSD and GNU)
+# - insert '-' before uppercase letters except at start, then lowercase everything
+kebab="$(sed -E 's/([[:alnum:]])([A-Z])/\1-\2/g' <<<"$name" | tr '[:upper:]' '[:lower:]')"
 routeBase="${kebab}s"
 
 entityPath="$ENT_DIR/${name}.ts"
