@@ -33,6 +33,9 @@ Một số ví dụ:
 ```bash
 git clone https://github.com/KaneLabb/chore-scripts.git
 cd chore-scripts
-chmod +x  clone-db.sh
+docker-compose up -d
+chmod +x clone-db.sh
+
+# update .env
 
 run clone-db.sh
