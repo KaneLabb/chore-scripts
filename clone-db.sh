@@ -3,7 +3,7 @@ set -o allexport
 
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &>/dev/null && pwd )"
-source "${SCRIPT_DIR}/.db"
+source "${SCRIPT_DIR}/.env"
 
 set +o allexport
 
@@ -23,7 +23,7 @@ echo "Fetching list of databases from the develop environment..."
 DB_LIST=$(docker run --rm \
   -e PGPASSWORD=$DEVELOP_PASSWORD \
   --network host \
-  postgis/postgis \
+  postgis/postgis:15-3.3 \
   psql -h $DEVELOP_HOST -p $DEVELOP_PORT -U $DEVELOP_USER -d postgres -t -c "SELECT datname FROM pg_database WHERE datistemplate = false;")
 if [ $? -ne 0 ]; then
   echo "Error: Unable to fetch database list from develop environment."

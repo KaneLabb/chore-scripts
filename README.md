@@ -1,34 +1,28 @@
-# 🧰 Script Linh Tinh – Kho tiện ích nhỏ cho Dev, DevOps và dân vọc vạch
+# 🧰 Chore Scripts – Kho tiện ích nhỏ cho dự án ADT
 
-**Repo:** [kiennnd/scripts](https://github.com/kiennnd/scripts)
+**Repo:** [KaneLabb/chore-scripts](https://github.com/KaneLabb/chore-scripts)
 
-Chào mừng bạn đến với **Script Linh Tinh**, nơi tập hợp những đoạn mã nhỏ, script tiện ích, công cụ CLI và automation tool tôi sử dụng trong quá trình làm việc: từ phát triển phần mềm, quản trị hệ thống, xử lý dữ liệu đến các công việc vặt vãnh thường ngày.
+Chào mừng bạn đến với **Chore Scripts**, nơi tập hợp những đoạn mã nhỏ, script tiện ích cho dự án ADT (Air Data), bao gồm các công cụ để tạo service, sao chép database và cấu hình môi trường phát triển.
 
-> Dù “linh tinh” nhưng chúng đều hữu ích, tái sử dụng cao và tiết kiệm thời gian.
+> Những script này giúp tự động hóa các tác vụ lặp lại trong quá trình phát triển.
 
 ---
 
 ## 📦 Nội dung repo
 
-Repo này chứa rất nhiều script nhỏ được viết bằng nhiều ngôn ngữ như:
+Repo này chứa các script được viết bằng Bash và cấu hình Docker:
 
-- **Bash** – Quản lý server, dọn dẹp docker, backup, kiểm tra SSL
-- **Node.js / TypeScript** – Tạo data mock, chuyển đổi định dạng file, tạo CLI tool
-- **Python** – Gọi API hàng loạt, xử lý file, thao tác dữ liệu
-- **SQL** – Truy vấn mẫu, tối ưu dữ liệu, backup
-- **Docker & Compose** – Cấu hình môi trường test nhanh (Postgres, Redis, MinIO,...)
-- **PowerShell** – Tác vụ quản lý hệ thống Windows
+- **Bash** – Tạo service ADT, sao chép database, quản lý môi trường
+- **Docker & Compose** – Cấu hình môi trường test nhanh (Postgres, Redis, MongoDB)
 
 Một số ví dụ:
 
 | Script | Mô tả ngắn |
 |--------|-----------|
-| `cleanup-docker.sh` | Xoá container/image/volume không dùng |
-| `api-tester.py` | Gửi nhiều request từ danh sách API |
-| `convert-csv-json.js` | Chuyển đổi CSV ↔ JSON |
-| `gen-mock.ts` | Sinh dữ liệu giả cho test |
-| `check-ssl-expiry.sh` | Kiểm tra chứng chỉ SSL sắp hết hạn |
-| `redis-watcher.sh` | Theo dõi thay đổi Redis key theo thời gian thực |
+| `adt-g-service.sh` | Tạo entity, repository, service, types, controller, DTO cho một entity mới |
+| `adt-u-service.sh` | Cập nhật repository, service, types cho tất cả entities hiện có |
+| `clone-db.sh` | Sao chép database từ môi trường develop về local |
+| `docker-compose.yml` | Cấu hình môi trường với Redis, MongoDB, Postgres |
 
 ---
 
@@ -37,5 +31,8 @@ Một số ví dụ:
 1. Clone repo:
 
 ```bash
-git clone https://github.com/kiennnd/scripts.git
-cd scripts
+git clone https://github.com/KaneLabb/chore-scripts.git
+cd chore-scripts
+chmod +x  clone-db.sh
+
+run clone-db.sh
