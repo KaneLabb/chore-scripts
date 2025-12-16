@@ -2,7 +2,7 @@ version: '3.3'
 services:
 
   redis:
-    image: docker.io/bitnami/redis:7.0
+    image: docker.io/bitnami/redis
     restart: always
     environment:
       # ALLOW_EMPTY_PASSWORD is recommended only for development.
@@ -15,7 +15,7 @@ services:
 
   mongodb-primary:
     # container_name: mongodb-primary
-    image: 'bitnami/mongodb:4.4'
+    image: 'bitnami/mongodb'
     environment:
       - MONGODB_ADVERTISED_HOSTNAME=localhost
       - MONGODB_REPLICA_SET_MODE=primary

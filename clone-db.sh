@@ -82,7 +82,7 @@ docker run --rm \
   -e PGPASSWORD=$DEVELOP_PASSWORD \
   -v "$PWD":/backup \
   --network host \
-  postgis/postgis \
+  postgis/postgis:15-3.3 \
   pg_dump --verbose -h $DEVELOP_HOST -p $DEVELOP_PORT -U $DEVELOP_USER -d $SELECTED_DB -F c -f /backup/$BACKUP_FILE
 if [ $? -ne 0 ]; then
   echo "Error: Failed to dump database $SELECTED_DB from develop environment."
